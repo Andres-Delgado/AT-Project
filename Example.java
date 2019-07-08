@@ -21,8 +21,11 @@ public class Example {
 
 		input.close();
 
-		System.out.println("Addition: " + Add(num1, num2));
-		System.out.println("Multiply: " + Multiply(num1, num2));
+		int result1 = Add(num1, num2);
+		int result2 = Multiply(num1, num2);
+
+		System.out.println("Addition: " + result1);
+		System.out.println("Multiply: " + result2);
 		
 		return;
 	}
