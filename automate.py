@@ -329,12 +329,6 @@ def Parse(javaList):
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-=======
-
-	path = os.getcwd()
-	filePath = path + "/Example.java"
->>>>>>> Dbranch
 
 	# check if program was called in the right format
 	if len(sys.argv) != 2:
@@ -346,7 +340,6 @@ if __name__ == "__main__":
 	filePath = path + "/" + sys.argv[1]
 	javaStr = ""
 
-<<<<<<< HEAD
 	# attempt to open contents of java file
 	try:
 		with open(filePath, 'r') as f:
@@ -362,15 +355,3 @@ if __name__ == "__main__":
 	# split the javaStr text into a list of strings, ignoring whitespace
 	# start parsing through the text of java file
 	pythonStr = Parse(javaStr.split())
-=======
-		# append each line to javaStr
-		for i, line in enumerate(f, 1):
-			javaStr += line
-
-	# split the javaStr text into a list of strings, ignoring whitespace
-	# start parsing through the text of java file
-	pythonStr = Parse(javaStr.split())
-
-	#print(type(javaStr), len(javaStr))
-	#print(javaStr)
->>>>>>> Dbranch
