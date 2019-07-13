@@ -171,7 +171,36 @@ def WritePython(funcDict, fileName):
 	print("Making Python file:", fileName + ".py")
 
 	for fName, fDict in funcDict.items():
-		file.write(fName)
+		
+		# write main function
+		if fName == "main":
+			file.write("if __name__ == \"__main__\":\n")
+		
+		else:
+			# write function definition
+			file.write("def " + fName + "(")
+
+			# write parameters for function
+			numParameters = len(fDict["parameters"]) - 1
+			for x in fDict["parameters"]:
+				file.write(x)
+
+				# write ',' if more than 1 parameter variable
+				if numParameters > 0:
+					file.write(", ")
+					numParameters -= 1
+			
+			# close ')' for function
+			file.write("):\n")
+
+		# write all statements in function
+		for x in fDict["content"]:
+
+			# skip return statement if in main function
+			if (x == "return") and (fName == "main"):
+				continue
+			file.write("\t" + x + "\n")
+
 		file.write("\n")
 
 	file.close()
