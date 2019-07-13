@@ -129,7 +129,7 @@ def ExtractFunction(functionStr):
 
 	return functionDict
 
-def ExtractContents(javaContent):
+def ExtractContents(javaContent, localVariables):
 	"""Converts the statements inside a Java function
 	into Python statements. The new Python statements
 	are chronologically ordered inside contentList."""
@@ -138,7 +138,7 @@ def ExtractContents(javaContent):
 	tempList = list(javaContent)
 
 	# iterate until ending '}' is found
-	while tempList[0] != "}":
+	while "return" not in tempList[0]:
 
 		# found output statement
 		if "System.out.print" in tempList[0]:
@@ -159,6 +159,10 @@ def ExtractContents(javaContent):
 			# output contains more just a string
 			else:
 
+				####################################3
+				####################################
+				### format str(variable)
+
 				# iterate until ';' char
 				while ";" not in tempList[0]:
 					opString += tempList[0] + " "
@@ -174,23 +178,36 @@ def ExtractContents(javaContent):
 			contentList.append(opString)
 			print("print statement:", opString)
 
-		# found return statement of function
-		elif "return" in tempList[0]:
-			returnStr = ""
-
-			# iterate through elements until the ending ';' is found
+		elif tempList[0] in localVariables:
+			print(tempList[0])
+			
+			varStatement = ""
 			while ";" not in tempList[0]:
-				returnStr += tempList[0] + " "	
+				varStatement += tempList[0] + " "
 				tempList.pop(0)
-				
-			# add the final element exclusing the ';' char
-			returnStr += tempList[0][:tempList[0].index(";")]
-			contentList.append(returnStr)
-			print("return statement:", returnStr)
+
+			if "input." in tempList[0]:
+				varStatement += "int(input())"
+			else:
+				varStatement += tempList[0][:tempList[0].index(";")]
+			contentList.append(varStatement)
 
 		tempList.pop(0)
 
-	print()
+	# found return statement of function
+	#	elif "return" in tempList[0]:
+	returnStr = ""
+
+	# iterate through elements until the ending ';' is found
+	while ";" not in tempList[0]:
+		returnStr += tempList[0] + " "	
+		tempList.pop(0)
+				
+	# add the final element exclusing the ';' char
+	returnStr += tempList[0][:tempList[0].index(";")]
+	contentList.append(returnStr)
+	print("return statement:", returnStr, end = '\n\n')
+
 	return contentList
 
 def WritePython(funcDict, fileName):
@@ -299,7 +316,7 @@ def Parse(javaList):
 			strCount -= 1
 
 			#print("Contents of function \"{}\":".format(currentFuncName))
-			functionDict[currentFuncName]["content"] = ExtractContents(javaList)
+			functionDict[currentFuncName]["content"] = ExtractContents(javaList, functionDict[currentFuncName]["Local Variables"])
 
 			# pop current element until the end of function
 			while javaList[0] != "}":
