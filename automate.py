@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 
 def Imports(importStr):
 	"""Converts necessary java import statements
@@ -67,7 +68,7 @@ def ExtractFunction(functionStr):
 		if x == "{":
 			break
 		fStr += x + " "
-	print("\nFound Class/Function Definition: ", fStr)
+	print("\nFound Function Definition:", fStr)
 	# DEBUG PRINT
 
 	functionDict = {}
@@ -140,16 +141,41 @@ def ExtractContents(javaContent):
 				opString += ", end = \"\""
 
 			opString = "print(" + opString + ")"
-			print("print statement:", opString)
 			contentList.append(opString)
+			print("print statement:", opString)
 
-		#else:
-		#	print(tempList[0])
+		# found return statement of function
+		elif "return" in tempList[0]:
+			returnStr = ""
+
+			# iterate through elements until the ending ';' is found
+			while ";" not in tempList[0]:
+				returnStr += tempList[0] + " "	
+				tempList.pop(0)
+				
+			# add the final element exclusing the ';' char
+			returnStr += tempList[0][:tempList[0].index(";")]
+			contentList.append(returnStr)
+			print("return statement:", returnStr)
 
 		tempList.pop(0)
 
 	print()
 	return contentList
+
+def WritePython(funcDict, fileName):
+
+	path = os.getcwd() + "/" + fileName + ".py"
+	file = open(path, "w")
+
+	print("Making Python file:", fileName + ".py")
+
+	for fName, fDict in funcDict.items():
+		file.write(fName)
+		file.write("\n")
+
+	file.close()
+	return
 
 def Parse(javaList):
 	"""Parses through the list of strings in javaList
@@ -213,7 +239,7 @@ def Parse(javaList):
 			javaList.pop(0)
 			strCount -= 1
 
-			print("Contents of function \"{}\":".format(currentFuncName))
+			#print("Contents of function \"{}\":".format(currentFuncName))
 			functionDict[currentFuncName]["content"] = ExtractContents(javaList)
 
 			# pop current element until the end of function
@@ -236,29 +262,37 @@ def Parse(javaList):
 	print("Import Strings:", importStrings)
 	print("Program Name:", programName)
 	print("Function Dictionaries:")
-	print(json.dumps(functionDict, indent = 2))
+	print(json.dumps(functionDict, indent = 2), end = '\n\n')
+
+	WritePython(functionDict, programName)
 
 	return javaList
 
 
 if __name__ == "__main__":
-	
-	path = os.getcwd()
-	filePath = path + "/Example.java"
 
+	# check if program was called in the right format
+	if len(sys.argv) != 2:
+		print("Program needs to be ran with in the following format:")
+		print("python automate.py <JavaProgramName.java>\n")
+		exit(0)
+
+	path = os.getcwd()	
+	filePath = path + "/" + sys.argv[1]
 	javaStr = ""
 
-	# open contents of java file
-	with open(filePath, 'r') as f:
-
-		# append each line to javaStr
-		for i, line in enumerate(f, 1):
-			javaStr += line
+	# attempt to open contents of java file
+	try:
+		with open(filePath, 'r') as f:
+			# append each line to javaStr
+			for i, line in enumerate(f, 1):
+				javaStr += line
+	
+	# specified file does not exist	
+	except FileNotFoundError:
+		print("File \"{}\" does not exist\n".format(sys.argv[1]))
+		exit(0)
 		
 	# split the javaStr text into a list of strings, ignoring whitespace
 	# start parsing through the text of java file
 	pythonStr = Parse(javaStr.split())
-	
-	#print(type(javaStr), len(javaStr))
-	#print(javaStr)
-	
