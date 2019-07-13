@@ -159,16 +159,12 @@ def ExtractContents(javaContent, localVariables):
 			# output contains more just a string
 			else:
 
-				####################################3
-				####################################
-				### format str(variable)
-
 				# iterate until ';' char
 				while ";" not in tempList[0]:
 					opString += tempList[0] + " "
 					tempList.pop(0)
 
-				opString += tempList[0][:tempList[0].index(");")]
+				opString += "str(" + tempList[0][:tempList[0].index(";")]
 
 			# output does not contain a new line
 			if not newline:
@@ -179,7 +175,6 @@ def ExtractContents(javaContent, localVariables):
 			print("print statement:", opString)
 
 		elif tempList[0] in localVariables:
-			print(tempList[0])
 			
 			varStatement = ""
 			while ";" not in tempList[0]:
