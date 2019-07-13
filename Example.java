@@ -1,13 +1,13 @@
 import java.util.Scanner;
 
 public class Example {
-	
+
 	public static int Add(int x, int y) {
 		return (x + y);
 	}
 
-	public static int Multiply(int x, int y) {
-		return (x * y);
+	public static int Multiply(int a, int b) {
+		return (a * b);
 	}
 
 	public static void main(String args[]) {
@@ -26,7 +26,7 @@ public class Example {
 
 		System.out.println("Addition: " + result1);
 		System.out.println("Multiply: " + result2);
-		
+
 		return;
 	}
 }

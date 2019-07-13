@@ -25,10 +25,10 @@ def ExtractParameterVars(funcList):
 	varNames = []
 
 	while tempList:
-		
+
 		# current element contains '(' character
 		if "(" in tempList[0]:
-			
+
 			# current string is only the function name, eg. Add( int x)
 			if tempList[0][-1] == "(":
 				tempList.pop(0)
@@ -39,7 +39,7 @@ def ExtractParameterVars(funcList):
 			# append variable name string, excluding ',' character if present
 			if tempList[0][-1] == ",":
 				varNames.append(tempList[0][:-1])
-			
+
 			# in main function definition, only 1 parameter
 			elif "[]" in tempList[0]:
 				varNames.append(tempList[0][:tempList[0].index("[]")])
@@ -47,17 +47,47 @@ def ExtractParameterVars(funcList):
 
 			# current element is just the parameter variable name
 			else: varNames.append(tempList[0])
-		
+
 		# current element is the end of function definition
 		elif ")" in tempList[0]:
 			varNames.append(tempList[0][:tempList[0].index(")")])
 			break
-		
+
 		# pop current element, continue with loop
 		tempList.pop(0)
 
 	print("Extracted Parameters:", varNames)
 	return varNames
+
+def ExtractLocalVars(funcList):
+	"""Finds any local variables used in a function"""
+
+	vartypes = ["byte", "short", "int", "long", "float", "double", "char", "boolean",
+			  	"byte[]", "short[]", "int[]", "long[]", "float[]",
+				"double[]", "char[]", "boolean[]"]
+
+	tempList = list(funcList)
+	localVars = []
+
+	while tempList:
+
+		if tempList[0] != "{":
+			tempList.pop(0)
+
+		else:
+			while tempList[0] != "}":
+				if tempList[0] in vartypes:
+					tempList.pop(0)
+
+					localVars.append(tempList[0])
+
+				else: tempList.pop(0)
+			break
+
+	print("Extracted Local Variables: ", localVars)
+	return localVars
+
+
 
 def ExtractFunction(functionStr):
 	"""Converts java function definitions into python function definitions."""
@@ -83,20 +113,20 @@ def ExtractFunction(functionStr):
 
 			# extract the parameter names, add to dictionary
 			functionDict[nameStr]["parameters"] = ExtractParameterVars(tempList)
-
+			functionDict[nameStr]["Local Variables"] = ExtractLocalVars(tempList)
 			# create a key for the contents in the function
 			functionDict[nameStr]["content"] = []
 			break
 
 		# skip function and parameter prefixes
-		#elif tempList[0] == "static" or tempList[0] == "int" or tempList[0] == "String": 
+		#elif tempList[0] == "static" or tempList[0] == "int" or tempList[0] == "String":
 		#	print("skipped:", tempList[0])
 
 		tempList.pop(0)
 
-	#print("Current Function Dictionary:")
-	#print(json.dumps(functionDict, indent = 2), end = '\n\n')
-	
+	print("Current Function Dictionary:")
+	print(json.dumps(functionDict, indent = 2), end = '\n\n')
+
 	return functionDict
 
 def ExtractContents(javaContent):
@@ -112,7 +142,7 @@ def ExtractContents(javaContent):
 
 		# found output statement
 		if "System.out.print" in tempList[0]:
-			
+
 			newline = "println" in tempList[0]
 			opString = tempList[0][tempList[0].index("\""):] + " "
 			tempList.pop(0)
@@ -125,7 +155,7 @@ def ExtractContents(javaContent):
 			# output is just a string
 			if "\");" in tempList[0]:
 				opString += tempList[0][:tempList[0].index("\");") + 1]
-				
+
 			# output contains more just a string
 			else:
 
@@ -135,7 +165,7 @@ def ExtractContents(javaContent):
 					tempList.pop(0)
 
 				opString += tempList[0][:tempList[0].index(");")]
-				
+
 			# output does not contain a new line
 			if not newline:
 				opString += ", end = \"\""
@@ -210,7 +240,7 @@ def Parse(javaList):
 	"""Parses through the list of strings in javaList
 	and decides what actions to perform."""
 
-	# keeps track of the number of strings we have parsed through 
+	# keeps track of the number of strings we have parsed through
 	strCount = len(javaList)
 
 	importStrings = []
@@ -218,7 +248,7 @@ def Parse(javaList):
 	programName, currentFuncName = "", ""
 
 	#print(*javaList, sep = '\n')
-	#return	
+	#return
 
 	# begin parsing through through each text string in javaList
 	while strCount > 0:
@@ -230,7 +260,7 @@ def Parse(javaList):
 
 			# extract needed python import statements
 			importStrings.append(Imports(javaList[0]))
-			
+
 		# found new function or class definition
 		elif (javaList[0] == "public") or (javaList[0] == "private") or (javaList[0] == "protected"):
 			#javaList.pop(0)
@@ -244,20 +274,20 @@ def Parse(javaList):
 
 				programName = javaList[0]
 				print("\nFound java class name:", programName)
-				
+
 				javaList.pop(0)
 				strCount -= 1
-			
+
 			# found a function definition
 			else:
 				# create function dictionary
 				newFuncDict = ExtractFunction(javaList)
 				functionDict.update(newFuncDict)
-				
+
 				# get current function name
 				currentFuncName = list(newFuncDict.keys())[0]
-				
-				# pop current element until the open brack is found, 
+
+				# pop current element until the open brack is found,
 				# the definition is not needed anymore
 				while javaList[0] != "{":
 					javaList.pop(0)
@@ -287,7 +317,7 @@ def Parse(javaList):
 		strCount -= 1
 
 	print("\nParsing Finished\n")
-		
+
 	print("Import Strings:", importStrings)
 	print("Program Name:", programName)
 	print("Function Dictionaries:")
@@ -299,6 +329,12 @@ def Parse(javaList):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
+=======
+
+	path = os.getcwd()
+	filePath = path + "/Example.java"
+>>>>>>> Dbranch
 
 	# check if program was called in the right format
 	if len(sys.argv) != 2:
@@ -310,6 +346,7 @@ if __name__ == "__main__":
 	filePath = path + "/" + sys.argv[1]
 	javaStr = ""
 
+<<<<<<< HEAD
 	# attempt to open contents of java file
 	try:
 		with open(filePath, 'r') as f:
@@ -325,3 +362,15 @@ if __name__ == "__main__":
 	# split the javaStr text into a list of strings, ignoring whitespace
 	# start parsing through the text of java file
 	pythonStr = Parse(javaStr.split())
+=======
+		# append each line to javaStr
+		for i, line in enumerate(f, 1):
+			javaStr += line
+
+	# split the javaStr text into a list of strings, ignoring whitespace
+	# start parsing through the text of java file
+	pythonStr = Parse(javaStr.split())
+
+	#print(type(javaStr), len(javaStr))
+	#print(javaStr)
+>>>>>>> Dbranch
