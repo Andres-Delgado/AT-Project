@@ -26,6 +26,8 @@ def ExtractParameterVars(funcList):
 
 	while tempList:
 
+		if "if" in tempList[0]:
+			break
 		# current element contains '(' character
 		if "(" in tempList[0]:
 
@@ -39,14 +41,14 @@ def ExtractParameterVars(funcList):
 			# append variable name string, excluding ',' character if present
 			if tempList[0][-1] == ",":
 				varNames.append(tempList[0][:-1])
-
 			# in main function definition, only 1 parameter
 			elif "[]" in tempList[0]:
 				varNames.append(tempList[0][:tempList[0].index("[]")])
 				break
 
 			# current element is just the parameter variable name
-			else: varNames.append(tempList[0])
+			elif ")" in tempList[0]:
+				varNames.append(tempList[0][:tempList[0].index(")")])
 
 		# current element is the end of function definition
 		elif ")" in tempList[0]:
@@ -70,7 +72,7 @@ def ExtractLocalVars(funcList):
 	localVars = []
 
 	while tempList:
-
+		#read and pop from tempList until you reach the start of the methods
 		if tempList[0] != "{":
 			tempList.pop(0)
 
@@ -78,7 +80,7 @@ def ExtractLocalVars(funcList):
 			while tempList[0] != "}":
 				if tempList[0] in vartypes:
 					tempList.pop(0)
-
+					#if the current element is a variable type append variable to list
 					localVars.append(tempList[0])
 
 				else: tempList.pop(0)
@@ -195,9 +197,9 @@ def ExtractContents(javaContent, localVariables):
 
 	# iterate through elements until the ending ';' is found
 	while ";" not in tempList[0]:
-		returnStr += tempList[0] + " "	
+		returnStr += tempList[0] + " "
 		tempList.pop(0)
-				
+
 	# add the final element exclusing the ';' char
 	returnStr += tempList[0][:tempList[0].index(";")]
 	contentList.append(returnStr)
@@ -213,11 +215,11 @@ def WritePython(funcDict, fileName):
 	print("Making Python file:", fileName + ".py")
 
 	for fName, fDict in funcDict.items():
-		
+
 		# write main function
 		if fName == "main":
 			file.write("if __name__ == \"__main__\":\n")
-		
+
 		else:
 			# write function definition
 			file.write("def " + fName + "(")
@@ -231,7 +233,7 @@ def WritePython(funcDict, fileName):
 				if numParameters > 0:
 					file.write(", ")
 					numParameters -= 1
-			
+
 			# close ')' for function
 			file.write("):\n")
 
@@ -348,7 +350,7 @@ if __name__ == "__main__":
 		print("python automate.py <JavaProgramName.java>\n")
 		exit(0)
 
-	path = os.getcwd()	
+	path = os.getcwd()
 	filePath = path + "/" + sys.argv[1]
 	javaStr = ""
 
@@ -358,12 +360,12 @@ if __name__ == "__main__":
 			# append each line to javaStr
 			for i, line in enumerate(f, 1):
 				javaStr += line
-	
-	# specified file does not exist	
+
+	# specified file does not exist
 	except FileNotFoundError:
 		print("File \"{}\" does not exist\n".format(sys.argv[1]))
 		exit(0)
-		
+
 	# split the javaStr text into a list of strings, ignoring whitespace
 	# start parsing through the text of java file
 	pythonStr = Parse(javaStr.split())
