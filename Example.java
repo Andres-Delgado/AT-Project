@@ -11,7 +11,7 @@ public class Example {
 	}
 
 	public static void compare(int x) {
-		if(x < 50)
+		if (x < 50)
 		{
 			System.out.println("Your favorite number is less than 50");
 		}

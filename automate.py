@@ -138,9 +138,31 @@ def ExtractContents(javaContent, localVariables):
 
 	contentList = []
 	tempList = list(javaContent)
+	ifstatement = []
+	elsestatment =[]
+
 
 	# iterate until ending '}' is found
 	while "return" not in tempList[0]:
+
+		if "if" in tempList[0]:
+			ifstatement += tempList[0] + " "	#add 'if' to []
+			tempList.pop(0)
+
+			#start adding conditional w/out (. e.g(if reads '(x < 50)', add 'x')
+			ifstatement += tempList[0][-1] + " "
+			tempList.pop(0)
+			ifstatement += tempList[0] + " "	#add more of conditional
+			tempList.pop(0)
+
+			#add rest of conditional without ) and add a colon newline and tab
+			ifstatement += tempList[0][:tempList[0].index(")")] + " " +":\n\t"
+			print(ifstatement)
+			contentList.append(ifstatement)
+		if "else" in tempList[0]:
+			elsestatment += tempList[0] + ":\n\t"	#if templist finds and 'else' add 'else:'
+			print(elsestatment)
+			contentList.append(elsestatment)
 
 		# found output statement
 		if "System.out.print" in tempList[0]:
@@ -177,7 +199,7 @@ def ExtractContents(javaContent, localVariables):
 			print("print statement:", opString)
 
 		elif tempList[0] in localVariables:
-			
+
 			varStatement = ""
 			while ";" not in tempList[0]:
 				varStatement += tempList[0] + " "
@@ -190,6 +212,7 @@ def ExtractContents(javaContent, localVariables):
 			contentList.append(varStatement)
 
 		tempList.pop(0)
+
 
 	# found return statement of function
 	#	elif "return" in tempList[0]:
