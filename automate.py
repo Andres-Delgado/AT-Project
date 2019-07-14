@@ -15,7 +15,6 @@ def Imports(importStr):
 		print("Found unneeded import:", importStr)
 		return None
 
-	#print("\nFound import:", importStr)
 	return None
 
 def ExtractParameterVars(funcList):
@@ -89,8 +88,6 @@ def ExtractLocalVars(funcList):
 	print("Extracted Local Variables: ", localVars)
 	return localVars
 
-
-
 def ExtractFunction(functionStr):
 	"""Converts java function definitions into python function definitions."""
 
@@ -120,10 +117,6 @@ def ExtractFunction(functionStr):
 			functionDict[nameStr]["content"] = []
 			break
 
-		# skip function and parameter prefixes
-		#elif tempList[0] == "static" or tempList[0] == "int" or tempList[0] == "String":
-		#	print("skipped:", tempList[0])
-
 		tempList.pop(0)
 
 	print("Current Function Dictionary:")
@@ -142,32 +135,28 @@ def ExtractContents(javaContent, localVariables):
 	# iterate until ending '}' is found
 	while "return" not in tempList[0]:
 
+		# found the start of an if statement
 		if "if" in tempList[0]:
 			
-			ifstatement = tempList[0] #+ " "	#add 'if' to []
+			ifstatement = tempList[0]
 			tempList.pop(0)
 
+			# extract the rest of the if statemenet
 			while tempList[0] != "{":
-				ifstatement += " " + tempList[0] #+ " "
+				ifstatement += " " + tempList[0]
 				tempList.pop(0)
 
-			##start adding conditional w/out (. e.g(if reads '(x < 50)', add 'x')
-			#ifstatement += tempList[0][-1] + " "
-			#tempList.pop(0)
-			#ifstatement += tempList[0] + " "	#add more of conditional
-			#tempList.pop(0)
-
-			#add rest of conditional without ) and add a colon newline and tab
-			#ifstatement += tempList[0][:tempList[0].index(")")] #+ " " +":\n\t"
 			print(ifstatement)
 			contentList.append(ifstatement)
 
+		# found else statement
 		elif "else" in tempList[0]:
-			elsestatment = tempList[0] #+ ":"	#if templist finds and 'else' add 'else:'
+			elsestatment = tempList[0]
 			tempList.pop(0)
 			print(elsestatment)
 			contentList.append(elsestatment)
 
+		# found an ending bracket to an if or else statement
 		elif tempList[0] == "}":
 			contentList.append(tempList[0])
 			print(tempList[0])
@@ -206,15 +195,19 @@ def ExtractContents(javaContent, localVariables):
 			contentList.append(opString)
 			print("print statement:", opString)
 
+		# found the use of a local variable
 		elif tempList[0] in localVariables:
-
 			varStatement = ""
+
+			# extract the statement until the ';' character
 			while ";" not in tempList[0]:
 				varStatement += tempList[0] + " "
 				tempList.pop(0)
 
+			# found an input statement
 			if "input." in tempList[0]:
 				varStatement += "int(input())"
+
 			else:
 				varStatement += tempList[0][:tempList[0].index(";")]
 			contentList.append(varStatement)
@@ -224,9 +217,7 @@ def ExtractContents(javaContent, localVariables):
 			contentList.append(tempList[0][:tempList[0].index(";")])
 		tempList.pop(0)
 
-
-	# found return statement of function
-	#	elif "return" in tempList[0]:
+	# reached the return statement of function
 	returnStr = ""
 
 	# iterate through elements until the ending ';' is found
@@ -243,17 +234,18 @@ def ExtractContents(javaContent, localVariables):
 
 def WritePython(funcDict, fileName):
 
+	# create new python file
 	path = os.getcwd() + "/" + fileName + ".py"
 	file = open(path, "w")
 
-	print("Making Python file:", fileName + ".py")
-
+	# iterate through the function dictionaries
 	for fName, fDict in funcDict.items():
 
 		# write main function
 		if fName == "main":
 			file.write("if __name__ == \"__main__\":\n")
 
+		# write non-main function
 		else:
 			# write function definition
 			file.write("def " + fName + "(")
@@ -281,7 +273,7 @@ def WritePython(funcDict, fileName):
 			if (x == "return") and (fName == "main"):
 				continue
 			
-			# start of if/else, the next lines will have an additional indent
+			# start of if/else, increase indentation for next lines
 			if ("if" in x) or ("else" in x):
 				file.write(("\t" * tabCount) + x + ":\n")
 				tabCount += 1
@@ -290,11 +282,13 @@ def WritePython(funcDict, fileName):
 			elif x == "}":
 				tabCount -= 1
 
+			# write statement
 			else: file.write(("\t" * tabCount) + x + "\n")
 
 		file.write("\n")
-
 	file.close()
+
+	print("Finished Python file:", fileName + ".py")
 	return
 
 def Parse(javaList):
@@ -307,9 +301,6 @@ def Parse(javaList):
 	importStrings = []
 	functionDict = {}
 	programName, currentFuncName = "", ""
-
-	#print(*javaList, sep = '\n')
-	#return
 
 	# begin parsing through through each text string in javaList
 	while strCount > 0:
@@ -324,8 +315,6 @@ def Parse(javaList):
 
 		# found new function or class definition
 		elif (javaList[0] == "public") or (javaList[0] == "private") or (javaList[0] == "protected"):
-			#javaList.pop(0)
-			#strCount -= 1
 
 			# found java program class definition
 			if javaList[1] == "class":
@@ -359,13 +348,11 @@ def Parse(javaList):
 			javaList.pop(0)
 			strCount -= 1
 
-			#print("Contents of function \"{}\":".format(currentFuncName))
+			# extract the contents of the current Java function
 			functionDict[currentFuncName]["content"] = ExtractContents(javaList, functionDict[currentFuncName]["Local Variables"])
-
-			#print(*functionDict[currentFuncName]["content"], sep = '\n', end = '\n\n\n\n')
 			bracketCount = functionDict[currentFuncName]["content"].count("}")
 
-			# there were if/else statements if "content" contains "}" elements			
+			# there were if/else statements if "content" item contains "}" elements			
 			if bracketCount:
 				while bracketCount > 0:
 					if javaList[0] == "}":
@@ -389,16 +376,13 @@ def Parse(javaList):
 		strCount -= 1
 
 	print("\nParsing Finished\n")
-
 	print("Import Strings:", importStrings)
 	print("Program Name:", programName)
 	print("Function Dictionaries:")
 	print(json.dumps(functionDict, indent = 2), end = '\n\n')
 
 	WritePython(functionDict, programName)
-
 	return javaList
-
 
 if __name__ == "__main__":
 
@@ -428,4 +412,3 @@ if __name__ == "__main__":
 	# start parsing through the text of java file
 	pythonStr = Parse(javaStr.split())
 	
-	#print(*javaStr.split(), sep = '\n')
