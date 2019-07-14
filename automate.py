@@ -427,3 +427,5 @@ if __name__ == "__main__":
 	# split the javaStr text into a list of strings, ignoring whitespace
 	# start parsing through the text of java file
 	pythonStr = Parse(javaStr.split())
+	
+	#print(*javaStr.split(), sep = '\n')
