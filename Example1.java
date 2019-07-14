@@ -35,7 +35,7 @@ public class Example1 {
 		int userNum = input.nextInt();
 		input.close();
 
-		System.out.println("Analyzing number: " + userNum);
+		System.out.println("Analyzing your number...");
 		AnalyzeNumber(userNum);
 
 		return;
