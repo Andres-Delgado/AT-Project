@@ -17,7 +17,12 @@ public class Example {
 		}
 		else
 		{
-			System.out.println("Your favorite number is greater than 50");
+			if (x == 50) {
+				System.out.println("Your favorite number is 50!");
+			}
+			else {
+				System.out.println("Your favorite number is greater than 50");
+			}
 		}
 
 		return;

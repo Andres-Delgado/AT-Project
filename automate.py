@@ -138,34 +138,42 @@ def ExtractContents(javaContent, localVariables):
 
 	contentList = []
 	tempList = list(javaContent)
-	ifstatement = []
-	elsestatment =[]
-
 
 	# iterate until ending '}' is found
 	while "return" not in tempList[0]:
 
 		if "if" in tempList[0]:
-			ifstatement += tempList[0] + " "	#add 'if' to []
+			
+			ifstatement = tempList[0] #+ " "	#add 'if' to []
 			tempList.pop(0)
 
-			#start adding conditional w/out (. e.g(if reads '(x < 50)', add 'x')
-			ifstatement += tempList[0][-1] + " "
-			tempList.pop(0)
-			ifstatement += tempList[0] + " "	#add more of conditional
-			tempList.pop(0)
+			while tempList[0] != "{":
+				ifstatement += " " + tempList[0] #+ " "
+				tempList.pop(0)
+
+			##start adding conditional w/out (. e.g(if reads '(x < 50)', add 'x')
+			#ifstatement += tempList[0][-1] + " "
+			#tempList.pop(0)
+			#ifstatement += tempList[0] + " "	#add more of conditional
+			#tempList.pop(0)
 
 			#add rest of conditional without ) and add a colon newline and tab
-			ifstatement += tempList[0][:tempList[0].index(")")] + " " +":\n\t"
+			#ifstatement += tempList[0][:tempList[0].index(")")] #+ " " +":\n\t"
 			print(ifstatement)
 			contentList.append(ifstatement)
-		if "else" in tempList[0]:
-			elsestatment += tempList[0] + ":\n\t"	#if templist finds and 'else' add 'else:'
+
+		elif "else" in tempList[0]:
+			elsestatment = tempList[0] #+ ":"	#if templist finds and 'else' add 'else:'
+			tempList.pop(0)
 			print(elsestatment)
 			contentList.append(elsestatment)
 
+		elif tempList[0] == "}":
+			contentList.append(tempList[0])
+			print(tempList[0])
+		
 		# found output statement
-		if "System.out.print" in tempList[0]:
+		elif "System.out.print" in tempList[0]:
 
 			newline = "println" in tempList[0]
 			opString = tempList[0][tempList[0].index("\""):] + " "
@@ -211,6 +219,9 @@ def ExtractContents(javaContent, localVariables):
 				varStatement += tempList[0][:tempList[0].index(";")]
 			contentList.append(varStatement)
 
+		# found a single element statement, eg., compare(someVar);
+		elif (";" in tempList[0]) and ("input" not in tempList[0]) and ("Scanner" not in tempList[0]):
+			contentList.append(tempList[0][:tempList[0].index(";")])
 		tempList.pop(0)
 
 
@@ -260,13 +271,26 @@ def WritePython(funcDict, fileName):
 			# close ')' for function
 			file.write("):\n")
 
+		# keep track of the indentation for if/else statements
+		tabCount = 1
+
 		# write all statements in function
 		for x in fDict["content"]:
 
 			# skip return statement if in main function
 			if (x == "return") and (fName == "main"):
 				continue
-			file.write("\t" + x + "\n")
+			
+			# start of if/else, the next lines will have an additional indent
+			if ("if" in x) or ("else" in x):
+				file.write(("\t" * tabCount) + x + ":\n")
+				tabCount += 1
+
+			# if/else is finished, decrease the number of indents
+			elif x == "}":
+				tabCount -= 1
+
+			else: file.write(("\t" * tabCount) + x + "\n")
 
 		file.write("\n")
 
@@ -337,6 +361,17 @@ def Parse(javaList):
 
 			#print("Contents of function \"{}\":".format(currentFuncName))
 			functionDict[currentFuncName]["content"] = ExtractContents(javaList, functionDict[currentFuncName]["Local Variables"])
+
+			#print(*functionDict[currentFuncName]["content"], sep = '\n', end = '\n\n\n\n')
+			bracketCount = functionDict[currentFuncName]["content"].count("}")
+
+			# there were if/else statements if "content" contains "}" elements			
+			if bracketCount:
+				while bracketCount > 0:
+					if javaList[0] == "}":
+						bracketCount -= 1
+					javaList.pop(0)
+					strCount -= 1
 
 			# pop current element until the end of function
 			while javaList[0] != "}":
